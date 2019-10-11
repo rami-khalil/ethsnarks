@@ -1,30 +1,22 @@
 os: Visual Studio 2015
 
-# Boost is already installed on AppVeyor.
 environment:
-  MINGW_ARCH: x86_64
-  MINGW_ROOT: C:\msys64\mingw64
-  BOOST_ROOT: C:\msys64\mingw64
-  BOOST_LIBRARYDIR: C:\msys64\mingw64\lib
-  BOOST_INCLUDEDIR: C:\msys64\mingw64\include\boost
-  CMAKE_GENERATOR: 'MSYS Makefiles'
-  #MINGW_ARCH: x86_64
-  #MINGW_ROOT: C:\mingw-w64
-  #BOOST_ROOT: C:\Libraries\boost_1_67_0
-  #BOOST_LIBRARYDIR: C:\Libraries\boost_1_67_0\lib64-msvc-14.0
+  matrix:
+   - COMPILER: msys64
 
 install:
+  # Use cygwin to checkout source code, due to characters in sub-repo that mingw git can't handle
+  - set OLD_PATH=%PATH%
+  - set PATH=%PATH%;C:\cygwin\bin
   - C:\cygwin\bin\git submodule update --init --recursive
-  - set PATH=%BOOST_LIBRARYDIR%;%PATH%
-  - if defined MINGW_ROOT set PATH=%MINGW_ROOT%\bin;C:\msys64\usr\bin\;%PATH%
-  - if defined MINGW_ARCH bash -lc "pacman --needed --noconfirm -S mingw-w64-%MINGW_ARCH%-boost mingw-w64-%MINGW_ARCH%-gmp"
-  - if defined MSVC_ARCH call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" %MSVC_ARCH%
+  - set PATH=C:\msys64\usr\bin\;%OLD_PATH%
+  - bash -lc "pacman --noconfirm -S make gmp gmp-devel gcc git cmake"
+
+before_build:
+  - bash -lc "cd $APPVEYOR_BUILD_FOLDER && cmake -E make_directory build && cmake -E chdir build cmake -DCMAKE_BUILD_TYPE=Debug .."
 
 build_script:
-  - cmake -E make_directory build
-  - cmake -E chdir build cmake -G "%CMAKE_GENERATOR%" -DOPENSSL_ROOT_DIR=C:\OpenSSL-Win64 --DOPENSSL_LIBRARIES=C:\OpenSSL-Win64\lib -DOPENSSL_INCLUDE_DIR=C:\OpenSSL-Win64\include ..
-  - cmake --build build --config Release
+  - bash -lc "cd $APPVEYOR_BUILD_FOLDER && cmake --build build"
 
 test_script:
-  - set CTEST_OUTPUT_ON_FAILURE=ON
-  - cmake --build build --target test
+  - bash -lc "cd $APPVEYOR_BUILD_FOLDER && cmake --build build --target test"

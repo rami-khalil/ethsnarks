@@ -2,7 +2,7 @@
 
 [![Join the chat at https://gitter.im/ethsnarks](https://badges.gitter.im/ethsnarks.png)](https://gitter.im/ethsnarks?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
-Zero-Knowledge proofs are coming to Ethereum and Dapps in 2018/2019!
+Zero-Knowledge proofs are coming to Ethereum and Dapps in 2019!
 
 EthSnarks is a collection of zkSNARK circuits and supporting libraries to use them with Ethereum smart contracts, it aims to help solve one of the biggest problems facing zkSNARKS on Ethereum - cross-platform on desktop, mobile and in-browser, cheap enough to run on-chain, and with algorithms that significantly reduces the time it takes to run the prover.
 
@@ -10,38 +10,74 @@ The notable advantages of using EthSnarks are:
 
  * Reduced cost, 500k gas with 1 input, using [Groth16](https://eprint.iacr.org/2016/260.pdf).
  * Prove zkSNARKs in-browser, with WebAssembly and Emscripten
- * Linux, Mac and (soon) Windows builds
+ * Linux, Mac and Windows builds
  * Solidity, Python and C++ support in one place
  * A growing library of gadgets and algorithms
 
-EthSnarks is participating in the Ethereum Foundation's grants program Wave 4, over the next 6-8 months development will continue full-time, and we will be working with companies and developers to help overcome the common challenges and hurdles that we all face. Get in-touch for more information.
+EthSnarks is participating in the Ethereum Foundation's grants program, development will continue full-time and we will be working with companies and developers to help overcome the common challenges and hurdles that we all face. Get in-touch for more information.
 
-**WARNING: EthSnarks is alpha quality software, improvements and fixes are made frequently, and documentation doesn't yet exist**
+**WARNING: EthSnarks is beta quality software, improvements and fixes are made frequently, and documentation doesn't yet exist**
 
 ## Examples
 
  * [Miximus - a self-service coin mixer and anonymous transfer method for Ethereum](https://github.com/HarryR/ethsnarks-miximus)
+ * [Hopper: an Open-Source Mixer for Mobile-friendly private transfers on Ethereum](https://github.com/argentlabs/hopper)
+ * [Example implementations of ethsnarks](https://github.com/LayerXcom/ethsnarks-examples)
+ * [An example of a zero-knowledge-proof of a SHA256 pre-image for Ethereum](https://github.com/Ethsnarks/ethsnarks-hashpreimage)
 
 ## Building
 
-[![Build Status](https://travis-ci.org/HarryR/ethsnarks.svg?branch=master)](https://travis-ci.org/HarryR/ethsnarks) [![BCH compliance](https://bettercodehub.com/edge/badge/HarryR/ethsnarks?branch=master)](https://bettercodehub.com/)
+[![Build Status](https://travis-ci.org/HarryR/ethsnarks.svg?branch=master)](https://travis-ci.org/HarryR/ethsnarks) [![Build status](https://ci.appveyor.com/api/projects/status/yk08x7xtk9te10vo/branch/master?svg=true)](https://ci.appveyor.com/project/harryr/ethsnarks/branch/master)
 
-Type `make` - the first time you run it will retrieve submodules, setup cmake and build everything, for more information about the build process see the [Travis-CI build logs](https://travis-ci.org/HarryR/ethsnarks).
+### Unix Flavours (Linux, OSX, Ubuntu, CentOS etc.)
 
-Before building, you may need to retrieve the source code for the dependencies:
-
-	git submodule update --init --recursive
-
-The following dependencies (for Linux) are needed:
+The following dependencies are required to build Ethsnarks:
 
  * cmake
  * g++ or clang++
  * gmp
- * libcrypto
- * boost
  * npm / nvm
 
-WebAssembly and JavaScript builds are supported via [ethsnarks-emscripten](https://github.com/harryr/ethsnarks-emscripten)
+Check-out the source-code using:
+
+```bash
+git clone git@github.com:HarryR/ethsnarks.git && cd ethsnarks
+```
+
+After checking-out the repository you need to install the necessary dependencies, the `Makefile` includes pre-determined rules for different platforms, you need to run this as `root` or an administrator user (i.e. for Brew on OSX):
+
+ * `make fedora-dependencies` (CentOS, Fedora, RHEL etc. requires `dnf`)
+ * `make ubuntu-dependencies` (Ubuntu, Debian etc. requires `apt-get`)
+ * `make mac-dependencies` (OSX, requires [Homebrew](https://brew.sh/))
+
+Then install the Python dependencies, via Pip, into the local user directory:
+
+ * `make python-dependencies`
+
+Then build and test the project:
+
+ * `git submodule update --init --recursive`
+ * `make`
+
+### Windows (64-bit)
+
+Install MSYS2 from https://www.msys2.org/ then open the MSYS2 Shell and run:
+
+```bash
+pacman --noconfirm -S make gmp gmp-devel gcc git cmake
+git clone git@github.com:HarryR/ethsnarks.git
+cd ethsnarks
+git submodule update --init --recursive
+cmake -E make_directory build
+cmake -E chdir build cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build build
+```
+
+Building under 32-bit MinGW32, MSYS (not MSYS2) and Microsoft Visual Studio may be supported in future depending upon demand, but currently it's probably broken...
+
+### WASM / Browser
+
+WebAssembly, WASM and JavaScript builds are partially supported via [ethsnarks-emscripten](https://github.com/harryr/ethsnarks-emscripten) and [ethsnarks-cheerp](https://github.com/Ethsnarks/ethsnarks-cheerp). The build process is similar, but using the Emscripten and Cheerp toolchains.
 
 # Requests and Contributions
 
@@ -59,6 +95,7 @@ The following gadgets are available
  * [2-bit lookup table](src/gadgets/lookup_2bit.cpp)
  * [3-bit lookup table](src/gadgets/lookup_3bit.cpp)
  * [MiMC](https://eprint.iacr.org/2016/492) hash and cipher
+ * [Poseidon](https://eprint.iacr.org/2019/458.pdf) hash function
  * [Miyaguchi-Preneel one-way function](https://en.wikipedia.org/wiki/One-way_compression_function)
  * Merkle tree
  * SHA256 (Ethereum compatible, full round)

@@ -11,3 +11,11 @@ target_link_libraries(sha3sum SHA3IUF)
 add_executable(sha3test ${DEPENDS_DIR_SHA3IUF}/sha3test.c)
 target_link_libraries(sha3test SHA3IUF)
 add_test(NAME run_sha3test COMMAND sha3test)
+
+
+add_library(nlohmann_json INTERFACE)
+target_include_directories(
+    nlohmann_json
+    INTERFACE
+    ${DEPENDS_DIR}/json/single_include/
+)

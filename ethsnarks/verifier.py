@@ -3,6 +3,7 @@
 
 
 import json
+import ctypes
 from functools import reduce
 from binascii import unhexlify
 from collections import namedtuple
@@ -96,7 +97,12 @@ def pairingProd(*inputs):
 
 class BaseProof(object):
     def to_json(self):
-        return json.dumps(self._asdict(), cls=CustomEncoder)
+        obj = self._asdict()
+        # Note, the inputs must be hex-encoded so they're JSON friendly
+        # The Custom JSON encoder doesn't handle them correctly
+        for field in self.FP_POINTS:
+            obj[field] = [hex(_) for _ in obj[field]]
+        return json.dumps(obj, cls=CustomEncoder)
 
     @classmethod
     def from_json(cls, json_data):
@@ -135,7 +141,6 @@ class Proof(_ProofStruct, BaseProof):
 
 class BaseVerifier(object):
     def to_json(self):
-        # TODO: encode fields as hex
         return json.dumps(self._asdict(), cls=CustomEncoder)
 
     @classmethod
@@ -189,3 +194,19 @@ class VerifyingKey(BaseVerifier, _VerifyingKeyStruct):
             (neg(vk_x), self.gamma),
             (neg(proof.C), self.delta),
             (neg(self.alpha), self.beta))
+
+
+class NativeVerifier(VerifyingKey):
+    def verify(self, proof, native_library_path):
+        if not isinstance(proof, Proof):
+            raise TypeError("Invalid proof type")
+
+        vk_cstr = ctypes.c_char_p(self.to_json().encode('ascii'))
+        proof_cstr = ctypes.c_char_p(proof.to_json().encode('ascii'))
+
+        lib = ctypes.cdll.LoadLibrary(native_library_path)
+        lib_verify = lib.ethsnarks_verify
+        lib_verify.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
+        lib_verify.restype = ctypes.c_bool
+
+        return lib_verify(vk_cstr, proof_cstr)
